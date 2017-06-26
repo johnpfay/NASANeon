@@ -99,3 +99,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# Rworkspace intermediates
+Rworkspace/.Rhistory
+Rworkspace/.Rproj.user/*

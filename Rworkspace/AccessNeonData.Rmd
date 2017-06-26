@@ -1,0 +1,49 @@
+---
+title: "NASANeonExplorer"
+author: "John Fay"
+date: "June 26, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### install usual libraries
+```{r echo=True}
+library("dplyr")
+```
+
+#### install & load the nneo package
+https://github.com/ropenscilabs/nneo
+
+```{r echo=FALSE}
+install.packages("nneo")
+library("nneo")
+```
+
+#### list [ACTIVE] products
+```{r}
+prods = nneo_products() %>% filter(productStatus == 'ACTIVE')
+View(prods)
+```
+
+#### find product codes
+```{r}
+beetleRecs = filter(prods,grepl('beetles',keywords))
+beetleRecs$productCode
+
+plantRecs = filter(prods,grepl('plant',keywords))
+mammalRecs = filter(prods,grepl('mammal',keywords))
+
+```
+
+
+#### Get beetle data
+```{r}
+beetle_data <- nneo_product("DP1.10022.001")
+beetle_data$productDescription
+```
+```{r}
+nneo_product("DP1.10022.001", verbose = TRUE)
+```
