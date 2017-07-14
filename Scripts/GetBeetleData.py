@@ -44,7 +44,7 @@ siteCodes = beetleDF.siteCodes.iloc[0]
 
 #Loop through each returned site and fetch the data
 for site in siteCodes:
-    break
+
     #Get the list of urls
     urls = site['availableDataUrls']
     print "processing {}".format(site['siteCode'])
@@ -86,24 +86,3 @@ for site in siteCodes:
 
 ##Merge CSV files
 
-#Get lists of field and pinning csvs
-import glob
-fldFiles = glob.glob(outFolder + os.sep + '*fielddata.csv')
-outFldCSV = outFolder + os.sep + 'AllFieldData.csv'
-
-idFiles = glob.glob(outFolder + os.sep + '*IDandpinning.csv')
-outIdCSV = outFolder + os.sep + 'AllPinningData.csv'
-
-#Merge field csvs and write out to a single csv
-df = pd.read_csv(fldFiles[0])
-df.to_csv(outFldCSV, index=False, mode='w')
-for file in fldFiles[1:]:
-    df = pd.read_csv(file)
-    df.to_csv(outFldCSV, index=False, header=False, mode='a')
-
-#Merge pinning data, using only first 15 columns 
-df = pd.read_csv(idFiles[0], usecols=range(15))
-df.to_csv(outIdCSV, index=False, mode='w')
-for file in idFiles[1:]:
-    df = pd.read_csv(file, usecols=range(15))
-    df.to_csv(outIdCSV, index=False, header=False, mode='a')
