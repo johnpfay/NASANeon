@@ -1,17 +1,22 @@
-
+#GetBeetleData.py
+#
+# Used pycurl to query the NEON api for all URLs containing beetle data then
+# loops through those URLs to pull data to local files of field and pinning data.
+#
+# This is the first in a series of scripts. Once these csv files are downloaded
+# a second script is run to merge these files into a single file 
 
 #import modules
-import sys, os
-import urllib
-import json
+import sys, os, urllib, json
 import pycurl
 from StringIO import StringIO
 import pandas as pd
 import numpy as np
 
 #Set the output location
-outFolder = '../Scratch/Beetle'
+outFolder = '../Data/BeetleData'
 
+##---Get the beetle URLs via querying the products API---
 #Set the base URL for the API
 baseURL='http://data.neonscience.org/api/v0/'
 
@@ -36,14 +41,18 @@ beetleDF = dfAll.query(("productStatus == 'ACTIVE' & productName == 'Ground beet
 
 #Loop through each site code and get data URLS
 siteCodes = beetleDF.siteCodes.iloc[0]
+
+#Loop through each returned site and fetch the data
 for site in siteCodes:
+    break
     #Get the list of urls
     urls = site['availableDataUrls']
-    
+    print "processing {}".format(site['siteCode'])
+
     #Loop through each URL 
     for url in urls:
 
-        #Fix url
+        #Fix url (it sometimes defaults to a blocked URL "http://dmz-portal...)
         idx = url.index('/',7) 
         url2 = 'http://data.neonscience.org' + url[idx:]
 
@@ -60,11 +69,11 @@ for site in siteCodes:
             fields = file['name'].split('.')
 
             #Skip to next url if not a csv file
-            if fields[-1] <> 'csv':
+            if (fields[-1] <> 'csv') or ('sorting' in file['name']):
                 continue
             #Create the filename
             fn = "{}-{}-{}".format(monthYear,siteCode,file['name'])
-            print "retrieving {}".format(fn)
+            print "...retrieving {}".format(fn)
             
             #Set the output filename and url
             outFN = os.path.join(outFolder,fn)
@@ -75,3 +84,26 @@ for site in siteCodes:
             with open(outFN,'w') as f:
                 f.write(response.read())
 
+##Merge CSV files
+
+#Get lists of field and pinning csvs
+import glob
+fldFiles = glob.glob(outFolder + os.sep + '*fielddata.csv')
+outFldCSV = outFolder + os.sep + 'AllFieldData.csv'
+
+idFiles = glob.glob(outFolder + os.sep + '*IDandpinning.csv')
+outIdCSV = outFolder + os.sep + 'AllPinningData.csv'
+
+#Merge field csvs and write out to a single csv
+df = pd.read_csv(fldFiles[0])
+df.to_csv(outFldCSV, index=False, mode='w')
+for file in fldFiles[1:]:
+    df = pd.read_csv(file)
+    df.to_csv(outFldCSV, index=False, header=False, mode='a')
+
+#Merge pinning data, using only first 15 columns 
+df = pd.read_csv(idFiles[0], usecols=range(15))
+df.to_csv(outIdCSV, index=False, mode='w')
+for file in idFiles[1:]:
+    df = pd.read_csv(file, usecols=range(15))
+    df.to_csv(outIdCSV, index=False, header=False, mode='a')
