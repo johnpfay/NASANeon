@@ -10,39 +10,68 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #### install usual libraries
-```{r echo=True}
-library("dplyr")
+```{r echo=False}
+library("dplyr", warn.conflicts = FALSE)
 ```
 
 #### install & load the nneo package
 https://github.com/ropenscilabs/nneo
 
 ```{r echo=FALSE}
-install.packages("nneo")
+#install.packages("nneo")
 library("nneo")
 ```
 
 #### list [ACTIVE] products
 ```{r}
-prods = nneo_products() %>% filter(productStatus == 'ACTIVE')
-View(prods)
+prods <- nneo_products() %>% 
+  filter(productStatus == 'ACTIVE')
+```
+#### make a list of product names
+```{r}
+productNames <- select(prods,productName)
+View(productNames)
 ```
 
-#### find product codes
+#### find product codes for beetles, mammals and plants
 ```{r}
 beetleRecs = filter(prods,grepl('beetles',keywords))
-beetleRecs$productCode
+beetleCode = beetleRecs$productCode[1]
+
+mammalRecs = filter(prods,grepl('mammal',keywords))
+mammalCode = mammalRecs$productCode[1]
 
 plantRecs = filter(prods,grepl('plant',keywords))
-mammalRecs = filter(prods,grepl('mammal',keywords))
+#plantNames = select(plantRecs,productName) 
+plantCode = plantRecs$productCode[1]
 
 ```
 
 
 #### Get beetle data
 ```{r}
-beetle_data <- nneo_product("DP1.10022.001")
-beetle_data$productDescription
+beetle_data <- nneo_product(beetleCode)
+beetle_frame <- data.frame(matrix(unlist(beetle_data)))
+beetle_frame <- data.frame(matrix(beetle_data))
+#make a list of its site codes
+sites = beetle_data$siteCodes
+#Get the first one for now
+siteX = sites$siteCode[1]
+startT = sites$availableMonths[1][1]
+```
+#### Wrangle the data
+```{r}
+w = nneo_wrangle(site_code = siteX, 
+                 time_start="2010-01-01",
+                 data_var=
+                 time_agr=30,
+                 package='basic')
+```
+
+
+#### Get beetle product
+```{r}
+foo = nneo_data(product_code = "DP1.10022.001", site_code="", year_month = "")
 ```
 ```{r}
 nneo_product("DP1.10022.001", verbose = TRUE)
